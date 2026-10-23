@@ -38,6 +38,7 @@ export default function Index() {
   const [adding, setAdding] = useState(false);
   const [newRow, setNewRow] = useState({ name: '', description: '', status: 'active' });
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [query, setQuery] = useState('');
   const nameRef = useRef<HTMLInputElement>(null);
 
   const fetchRecords = async () => {
@@ -101,6 +102,12 @@ export default function Index() {
     if (e.key === 'Escape') { cancelEdit(); setAdding(false); }
   };
 
+  const q = query.trim().toLowerCase();
+  const visible = q
+    ? records.filter(r =>
+        r.name.toLowerCase().includes(q) || (r.description || '').toLowerCase().includes(q))
+    : records;
+
   return (
     <div className="min-h-screen bg-white font-sans">
       {/* Header */}
@@ -120,6 +127,31 @@ export default function Index() {
 
       {/* Table */}
       <main className="px-8 py-6">
+        <div className="relative mb-4">
+          <Icon
+            name="Search"
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+          />
+          <input
+            type="text"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Escape') setQuery(''); }}
+            placeholder="Поиск по имени или описанию..."
+            className="w-full border border-gray-200 rounded-lg pl-10 pr-10 py-2.5 text-sm text-gray-900 outline-none transition-colors focus:border-gray-800 placeholder:text-gray-400"
+          />
+          {query && (
+            <button
+              onClick={() => setQuery('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-gray-400 hover:bg-gray-100 transition-colors"
+              title="Очистить"
+            >
+              <Icon name="X" size={14} />
+            </button>
+          )}
+        </div>
+
         {loading ? (
           <div className="flex items-center justify-center py-24 gap-2 text-gray-400">
             <Icon name="Loader" size={18} className="animate-spin" />
@@ -139,7 +171,7 @@ export default function Index() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {records.map((r, i) => {
+                {visible.map((r, i) => {
                   const isEditing = editing?.id === r.id;
                   return (
                     <tr
@@ -306,10 +338,10 @@ export default function Index() {
                   </tr>
                 )}
 
-                {records.length === 0 && !adding && (
+                {visible.length === 0 && !adding && (
                   <tr>
                     <td colSpan={6} className="px-5 py-16 text-center text-gray-300 text-sm">
-                      Нет записей — нажмите «Добавить»
+                      {q ? `Ничего не найдено по запросу «${query.trim()}»` : 'Нет записей — нажмите «Добавить»'}
                     </td>
                   </tr>
                 )}

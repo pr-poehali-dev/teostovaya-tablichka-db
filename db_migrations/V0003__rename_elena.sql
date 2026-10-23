@@ -1,0 +1,1 @@
+UPDATE records SET name = 'Елен', updated_at = NOW() WHERE id = 4 AND name = 'Елена Козлова';
